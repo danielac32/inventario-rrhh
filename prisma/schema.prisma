@@ -1,0 +1,111 @@
+
+
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String     @default("USER")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relación con las asignaciones
+  asignaciones Asignacion[] 
+}
+
+//enum Role {
+//  ADMIN
+//  USER
+//}
+
+model Categoria {
+  id         Int      @id @default(autoincrement())
+  name       String
+  tipo       String //TipoProducto // Define el tipo de producto que pertenece a esta categoría
+  productos  Producto[]
+}
+
+//enum TipoProducto {
+ // MEDICAMENTOS
+//  UNIFORMES
+//  EQUIPOS_ODONTOLOGICOS
+//}
+
+model Producto {
+  id             Int          @id @default(autoincrement())
+  descripcion    String?
+  codigo         String?      @unique
+  stock          Int
+  categoriaId    Int
+  categoria      Categoria    @relation(fields: [categoriaId], references: [id])
+  tipo           String//TipoProducto // Define el tipo de producto al que pertenece
+  modificaciones Modificacion[]   // Relación con modificaciones
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Trabajador {
+  id         Int         @id @default(autoincrement())
+  nombre     String
+  apellido   String
+  cedula     String      @unique
+  familiares Familiar[]  // Relación con familiares
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  // Relación con asignaciones
+  asignaciones Asignacion[]
+}
+
+model Familiar {
+  id           Int        @id @default(autoincrement())
+  nombre       String
+  apellido     String
+  relacion     String      // Relación con el trabajador (ej. hijo, esposa, etc.)
+  trabajadorId Int
+  trabajador   Trabajador  @relation(fields: [trabajadorId], references: [id])
+
+  // Relación con asignaciones
+  asignaciones Asignacion[]
+}
+
+model Asignacion {
+  id             Int         @id @default(autoincrement())
+  trabajadorId   Int?        // Relación con un trabajador (opcional)
+  trabajador     Trabajador? @relation(fields: [trabajadorId], references: [id])
+  familiarId     Int?        // Relación con un familiar (opcional)
+  familiar       Familiar?   @relation(fields: [familiarId], references: [id])
+  userId         Int         // Usuario que realiza la asignación
+  user           User        @relation(fields: [userId], references: [id])
+  modificaciones Modificacion[]  // Relación con las modificaciones (productos asignados)
+  createdAt      DateTime     @default(now())
+}
+
+model Modificacion {
+  id           Int         @id @default(autoincrement())
+  tipo         String //TipoModificacion // CREADO, ASIGNACION, etc.
+  cantidad     Int         // Cantidad modificada (agregada o restada)
+  productoId   Int
+  producto     Producto     @relation(fields: [productoId], references: [id])
+  asignacionId Int          // Relación con una asignación
+  asignacion   Asignacion   @relation(fields: [asignacionId], references: [id])
+  createdAt    DateTime     @default(now())
+}
+
+
+//enum TipoModificacion {
+//  CREADO
+//  ASIGNACION
+//}
