@@ -14,7 +14,9 @@ CREATE TABLE "User" (
 CREATE TABLE "Categoria" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
-    "tipo" TEXT NOT NULL
+    "tipo" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateTable
@@ -36,6 +38,10 @@ CREATE TABLE "Trabajador" (
     "nombre" TEXT NOT NULL,
     "apellido" TEXT NOT NULL,
     "cedula" TEXT NOT NULL,
+    "edad" INTEGER,
+    "direccion" TEXT,
+    "oficina" TEXT,
+    "observacion" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
@@ -45,8 +51,13 @@ CREATE TABLE "Familiar" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "nombre" TEXT NOT NULL,
     "apellido" TEXT NOT NULL,
+    "edad" INTEGER,
+    "direccion" TEXT,
     "relacion" TEXT NOT NULL,
     "trabajadorId" INTEGER NOT NULL,
+    "observacion" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Familiar_trabajadorId_fkey" FOREIGN KEY ("trabajadorId") REFERENCES "Trabajador" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -55,11 +66,11 @@ CREATE TABLE "Asignacion" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "trabajadorId" INTEGER,
     "familiarId" INTEGER,
-    "userId" INTEGER NOT NULL,
+    "observacion" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Asignacion_trabajadorId_fkey" FOREIGN KEY ("trabajadorId") REFERENCES "Trabajador" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Asignacion_familiarId_fkey" FOREIGN KEY ("familiarId") REFERENCES "Familiar" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Asignacion_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Asignacion_familiarId_fkey" FOREIGN KEY ("familiarId") REFERENCES "Familiar" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -69,7 +80,10 @@ CREATE TABLE "Modificacion" (
     "cantidad" INTEGER NOT NULL,
     "productoId" INTEGER NOT NULL,
     "asignacionId" INTEGER NOT NULL,
+    "entregado" TEXT,
+    "observacion" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Modificacion_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Modificacion_asignacionId_fkey" FOREIGN KEY ("asignacionId") REFERENCES "Asignacion" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );

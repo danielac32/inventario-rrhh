@@ -20,7 +20,7 @@ export class AuthService {
 
   async create(createAuthDto: CreateAuthDto) {
         const { password, ...userData } = createAuthDto;
-        let user = await this.prisma.userEntity.findFirst({
+        let user = await this.prisma.user.findFirst({
                   where: {
                           email: userData.email
                   }
@@ -29,7 +29,7 @@ export class AuthService {
            throw new ConflictException('User already exist');
         }
         try{
-            const newUser = await this.prisma.userEntity.create({
+            const newUser = await this.prisma.user.create({
                     data:{
                         ...userData,
                         password:bcrypt.hashSync( password, 10 )
@@ -48,7 +48,7 @@ export class AuthService {
   
 
   async findAll() {
-      const users = await this.prisma.userEntity.findMany();
+      const users = await this.prisma.user.findMany();
       return{
         users
       }
@@ -58,7 +58,7 @@ export class AuthService {
       let user;
         // Verifica si el término es un correo electrónico
         if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id)) {
-            user = await this.prisma.userEntity.findFirst({
+            user = await this.prisma.user.findFirst({
                 where: {
                         email: id
                 }
@@ -67,7 +67,7 @@ export class AuthService {
         if (!user) {
             const userId = Number(id);
             if (!isNaN(userId)) {
-              user = await this.prisma.userEntity.findFirst({
+              user = await this.prisma.user.findFirst({
                 where: {
                   id: userId
                 }
@@ -99,7 +99,7 @@ export class AuthService {
     }else{
        tempData={...userData};
     }
-    const updatedUser = await this.prisma.userEntity.update({
+    const updatedUser = await this.prisma.user.update({
         where: {
           email: user.email
         },
@@ -115,7 +115,7 @@ export class AuthService {
     const user= await this.getUser(id);
     if(!user)throw new NotFoundException(`Entity with ID ${id} not found`);
 
-    const deletedUser = await this.prisma.userEntity.delete({
+    const deletedUser = await this.prisma.user.delete({
       where: {
         email: user.email
       },
@@ -127,7 +127,7 @@ export class AuthService {
   async login( loginUserDto: LoginUserDto ) {
     const { email, password } = loginUserDto;
     let user;
-    user = await this.prisma.userEntity.findFirst({
+    user = await this.prisma.user.findFirst({
         where: {
                 email: email
         }

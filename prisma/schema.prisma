@@ -22,7 +22,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relación con las asignaciones
-  asignaciones Asignacion[] 
+  //asignaciones Asignacion[] 
 }
 
 //enum Role {
@@ -35,6 +35,8 @@ model Categoria {
   name       String
   tipo       String //TipoProducto // Define el tipo de producto que pertenece a esta categoría
   productos  Producto[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 //enum TipoProducto {
@@ -48,6 +50,7 @@ model Producto {
   descripcion    String?
   codigo         String?      @unique
   stock          Int
+  nombre       String?
   categoriaId    Int
   categoria      Categoria    @relation(fields: [categoriaId], references: [id])
   tipo           String//TipoProducto // Define el tipo de producto al que pertenece
@@ -61,24 +64,32 @@ model Trabajador {
   nombre     String
   apellido   String
   cedula     String      @unique
+  edad          Int?
+  direccion    String?
+  cargo    String?
+  oficina    String?
   familiares Familiar[]  // Relación con familiares
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-
+  observacion    String?
   // Relación con asignaciones
   asignaciones Asignacion[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 }
 
 model Familiar {
   id           Int        @id @default(autoincrement())
   nombre       String
   apellido     String
+  edad          Int?
+  direccion    String?
   relacion     String      // Relación con el trabajador (ej. hijo, esposa, etc.)
   trabajadorId Int
   trabajador   Trabajador  @relation(fields: [trabajadorId], references: [id])
-
+  observacion    String?
   // Relación con asignaciones
   asignaciones Asignacion[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 }
 
 model Asignacion {
@@ -87,10 +98,12 @@ model Asignacion {
   trabajador     Trabajador? @relation(fields: [trabajadorId], references: [id])
   familiarId     Int?        // Relación con un familiar (opcional)
   familiar       Familiar?   @relation(fields: [familiarId], references: [id])
-  userId         Int         // Usuario que realiza la asignación
-  user           User        @relation(fields: [userId], references: [id])
+  //userId         Int         // Usuario que realiza la asignación
+  //user           User        @relation(fields: [userId], references: [id])
   modificaciones Modificacion[]  // Relación con las modificaciones (productos asignados)
+  observacion    String?
   createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Modificacion {
@@ -99,9 +112,12 @@ model Modificacion {
   cantidad     Int         // Cantidad modificada (agregada o restada)
   productoId   Int
   producto     Producto     @relation(fields: [productoId], references: [id])
-  asignacionId Int          // Relación con una asignación
-  asignacion   Asignacion   @relation(fields: [asignacionId], references: [id])
-  createdAt    DateTime     @default(now())
+  asignacionId Int?          // Relación con una asignación
+  asignacion   Asignacion?   @relation(fields: [asignacionId], references: [id])
+  entregado    String?
+  observacion    String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 
