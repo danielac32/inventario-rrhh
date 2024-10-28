@@ -25,6 +25,7 @@ CREATE TABLE "Producto" (
     "descripcion" TEXT,
     "codigo" TEXT,
     "stock" INTEGER NOT NULL,
+    "nombre" TEXT,
     "categoriaId" INTEGER NOT NULL,
     "tipo" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -40,6 +41,7 @@ CREATE TABLE "Trabajador" (
     "cedula" TEXT NOT NULL,
     "edad" INTEGER,
     "direccion" TEXT,
+    "cargo" TEXT,
     "oficina" TEXT,
     "observacion" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -79,13 +81,13 @@ CREATE TABLE "Modificacion" (
     "tipo" TEXT NOT NULL,
     "cantidad" INTEGER NOT NULL,
     "productoId" INTEGER NOT NULL,
-    "asignacionId" INTEGER NOT NULL,
+    "asignacionId" INTEGER,
     "entregado" TEXT,
     "observacion" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Modificacion_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Modificacion_asignacionId_fkey" FOREIGN KEY ("asignacionId") REFERENCES "Asignacion" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Modificacion_asignacionId_fkey" FOREIGN KEY ("asignacionId") REFERENCES "Asignacion" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateIndex

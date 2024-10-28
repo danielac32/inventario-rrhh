@@ -21,6 +21,7 @@ export class InvController {
   findProductoTipo(@Param('id') id: string) {
     return this.invService.findProductoTipo(+id);
   }
+  
 
   @Get('producto/:id')
   findOne(@Param('id') id: string) {
@@ -36,6 +37,8 @@ export class InvController {
   remove(@Param('id') id: string) {
     return this.invService.remove(+id);
   }
+
+
   /**************************************************************************************************/
   @Post('create/Categoria')
   createCategoria(@Body() createCategoriaDto: CreateCategoriaDto) {
@@ -92,5 +95,31 @@ export class InvController {
   removeTrabajador(@Param('id') id: string) {
     return this.invService.removeTrabajador(+id);
   }
+/**************************************************************************************************/
+/*
+  @Post('create/Familiar')
+  createFamiliar(@Body() createTrabajadorDto: CreateTrabajadorDto) {
+    return this.invService.createTrabajador(createTrabajadorDto);
+  }
+
+  @Get('findOne/Familiar/:id')
+  findFamiliarByUser(@Param('id') id: string) {
+    return this.invService.findOneTrabajador(+id);
+  }
+
+  @Patch('update/Familiar/:id')
+  updateFamiliar(@Param('id') id: string, @Body() updateTrabajadorDto: UpdateTrabajadorDto) {
+    return this.invService.updateTrabajador(+id, updateTrabajadorDto);
+  }
+
+  @Delete('remove/Familiar/:id')
+  removeTrabajador(@Param('id') id: string) {
+    return this.invService.removeTrabajador(+id);
+  }*/
+/**************************************************************************************************/
+
+
 }
-  /**************************************************************************************************/
+
+
+

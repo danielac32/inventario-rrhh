@@ -8,84 +8,134 @@ import {Role,TipoProducto,TipoModificacion} from '../../interface/inv-emun'
 
 export const categoriasMedicamentos: ICategoria[] = [
   {
-    //id: 1,
-    name: "Analgésicos",
-    tipo: TipoProducto.MEDICAMENTOS,
-    //productos: [],  // Puedes agregar productos asociados aquí si los tienes
-    //createdAt: new Date("2023-01-01"),
-   // updatedAt: new Date("2023-01-10"),
-  },
-  {
-    //id: 2,
     name: "Antibióticos",
     tipo: TipoProducto.MEDICAMENTOS,
-    //productos: [],
-    //createdAt: new Date("2023-01-02"),
-    //updatedAt: new Date("2023-01-11"),
   },
   {
-   // id: 3,
+    name: "Analgésicos",
+    tipo: TipoProducto.MEDICAMENTOS,
+  },
+  {
     name: "Antiinflamatorios",
     tipo: TipoProducto.MEDICAMENTOS,
-    //productos: [],
-    //createdAt: new Date("2023-01-03"),
-    //updatedAt: new Date("2023-01-12"),
+  },
+  {
+    name: "Antidepresivos",
+    tipo: TipoProducto.MEDICAMENTOS,
+  },
+  {
+    name: "Antihistamínicos",
+    tipo: TipoProducto.MEDICAMENTOS,
+  },
+  {
+    name: "Antipiréticos",
+    tipo: TipoProducto.MEDICAMENTOS,
+  },
+  {
+    name: "Vacunas",
+    tipo: TipoProducto.MEDICAMENTOS,
+  },
+  {
+    name: "Medicamentos para Diabetes",
+    tipo: TipoProducto.MEDICAMENTOS,
+  },
+  {
+    name: "Medicamentos Cardiovasculares",
+    tipo: TipoProducto.MEDICAMENTOS,
+  },
+  {
+    name: "Suplementos Vitaminicos",
+    tipo: TipoProducto.MEDICAMENTOS,
   },
 ];
 
+
 export const categoriasUniformes: ICategoria[] = [
   {
-    //id: 4,
-    name: "Uniformes",
+    name: "Uniformes Escolares",
     tipo: TipoProducto.UNIFORMES,
-    //productos: [],
-    //createdAt: new Date("2023-02-01"),
-    //updatedAt: new Date("2023-02-10"),
   },
   {
-    //id: 5,
-    name: "Uniformes2",
+    name: "Uniformes para Limpieza",
     tipo: TipoProducto.UNIFORMES,
-    //productos: [],
-    //createdAt: new Date("2023-02-02"),
-    //updatedAt: new Date("2023-02-11"),
   },
   {
-    //id: 6,
-    name: "Uniformes3",
+    name: "Uniformes de Trabajo",
     tipo: TipoProducto.UNIFORMES,
-    productos: [],
-    //createdAt: new Date("2023-02-03"),
-    //updatedAt: new Date("2023-02-12"),
+  },
+  {
+    name: "Zapatos Escolares",
+    tipo: TipoProducto.UNIFORMES,
+  },
+  {
+    name: "Ropa de Protección",
+    tipo: TipoProducto.UNIFORMES,
+  },
+  {
+    name: "Uniformes para Analistas",
+    tipo: TipoProducto.UNIFORMES,
+  },
+  {
+    name: "Uniformes para Personal de Salud",
+    tipo: TipoProducto.UNIFORMES,
+  },
+  {
+    name: "Accesorios para Uniformes",
+    tipo: TipoProducto.UNIFORMES,
+  },
+  {
+    name: "Ropa de Oficina",
+    tipo: TipoProducto.UNIFORMES,
+  },
+  {
+    name: "Uniformes Deportivos",
+    tipo: TipoProducto.UNIFORMES,
   },
 ];
 
 export const categoriasEquiposOdontologicos: ICategoria[] = [
   {
-    //id: 7,
-    name: "Herramientas de Diagnóstico",
+    name: "Exploradores Dentales",
     tipo: TipoProducto.EQUIPOS_ODONTOLOGICOS,
-    //productos: [],
-    //createdAt: new Date("2023-03-01"),
-    //updatedAt: new Date("2023-03-10"),
   },
   {
-    //id: 8,
-    name: "Instrumentos de Cirugía",
+    name: "Espejos Dentales",
     tipo: TipoProducto.EQUIPOS_ODONTOLOGICOS,
-    //productos: [],
-    //createdAt: new Date("2023-03-02"),
-    //updatedAt: new Date("2023-03-11"),
   },
   {
-    //id: 9,
-    name: "Equipo de Protección",
+    name: "Pinzas de Extracción",
     tipo: TipoProducto.EQUIPOS_ODONTOLOGICOS,
-    //productos: [],
-    //createdAt: new Date("2023-03-03"),
-    //updatedAt: new Date("2023-03-12"),
+  },
+  {
+    name: "Jeringas Dentales",
+    tipo: TipoProducto.EQUIPOS_ODONTOLOGICOS,
+  },
+  {
+    name: "Material de Relleno",
+    tipo: TipoProducto.EQUIPOS_ODONTOLOGICOS,
+  },
+  {
+    name: "Impresiones Dentales",
+    tipo: TipoProducto.EQUIPOS_ODONTOLOGICOS,
+  },
+  {
+    name: "Radiografías Dentales",
+    tipo: TipoProducto.EQUIPOS_ODONTOLOGICOS,
+  },
+  {
+    name: "Equipos de Esterilización",
+    tipo: TipoProducto.EQUIPOS_ODONTOLOGICOS,
+  },
+  {
+    name: "Protectores Bucales",
+    tipo: TipoProducto.EQUIPOS_ODONTOLOGICOS,
+  },
+  {
+    name: "Consultorios Móviles",
+    tipo: TipoProducto.EQUIPOS_ODONTOLOGICOS,
   },
 ];
+
 
 /*********************************************************************************************************/
 export const usuarios: IUser[] = [
