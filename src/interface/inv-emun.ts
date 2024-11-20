@@ -18,3 +18,10 @@ export enum TipoModificacion {
   SUMA="SUMA",
   RESTA="RESTA"
 }
+
+
+export enum TipoAsignacion {
+  TRABAJADOR="TRABAJADOR",
+  FAMILIAR="FAMILIAR",
+  OTRO="OTRO"
+}

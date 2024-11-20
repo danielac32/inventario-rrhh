@@ -1,8 +1,8 @@
 
 import { ApiProperty } from '@nestjs/swagger';
 // producto.dto.ts
-import { IsString, IsNotEmpty, IsInt, IsOptional, IsPositive , MaxLength, MinLength , } from 'class-validator';
-
+import { IsString, IsNotEmpty, IsInt, IsOptional, IsPositive , MaxLength, MinLength ,ValidateNested ,IsArray} from 'class-validator';
+import { Type } from 'class-transformer';
 export class CreateProductoDto {
 
   @ApiProperty()
@@ -24,7 +24,7 @@ export class CreateProductoDto {
 
   @ApiProperty()
   @IsInt()
-  @IsPositive()
+  /*@IsPositive()*/
   stock: number;
 
   @ApiProperty()
@@ -41,9 +41,24 @@ export class CreateProductoDto {
 
 export class AddStockDto{
 
+  /*@ApiProperty()
+  @IsInt()
+  stock: number;
+
+  @ApiProperty()
+  @MinLength(1)
+  @IsString()
+  tipo: string;*/
+  
+  /*@ApiProperty()
+  @IsOptional()
+  @IsString()
+  observacion: string;*/
+
   @ApiProperty()
   @IsInt()
   stock: number;
+
 
   @ApiProperty()
   @MinLength(1)
@@ -53,28 +68,40 @@ export class AddStockDto{
   @ApiProperty()
   @IsPositive()
   @IsInt()
-  valor: number;
+  cantidad: number;
+  
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  entregado: string;
 }
 
 export class SubStockDto{
+
+
   @ApiProperty()
   @IsInt()
   stock: number;
-
-  @ApiProperty()
-  @MinLength(1)
-  @IsString()
-  tipo: string;
-
+  
   @ApiProperty()
   @IsPositive()
   @IsInt()
-  valor: number;
+  cantidad: number;
+  
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  entregado: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  descripcion: string;
+  tipo: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  observacion: string;
 }
 
 
@@ -110,7 +137,7 @@ export class CreateTrabajadorDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  carfgo: string;
+  cargo: string;
 
   @ApiProperty()
   @IsPositive()
@@ -131,4 +158,94 @@ export class CreateTrabajadorDto {
 
 
 
+export class ProductCart {
+  @ApiProperty()
+  @IsInt()
+  id: number;
 
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsInt()
+  quantity: number;
+}
+
+export class CreateAsignacionDto {
+
+  @ApiProperty()
+  @IsInt()
+  @IsOptional()
+  trabajadorId: number;
+
+  @ApiProperty()
+  @IsInt()
+  @IsOptional()
+  familiarId: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  otro: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @MinLength(1)
+  @IsString()
+  observacion: string;
+
+  @ApiProperty()
+  @MinLength(1)
+  @IsString()
+  tipo: string;
+
+  @ApiProperty({ type: [ProductCart], description: 'Array of product carts' })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductCart)
+  productos: ProductCart[];
+}
+
+
+export class CreateReport {
+
+  @ApiProperty()
+  @IsInt()
+  @IsOptional()
+  trabajadorId: number;
+
+  @ApiProperty()
+  @IsInt()
+  @IsOptional()
+  familiarId: number;
+  
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  nombre: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  apellido: string;
+  
+  @ApiProperty()
+  @IsInt()
+  @IsOptional()
+  cedula: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  parentesco: string;
+
+
+  @ApiProperty()
+  @IsString()
+  desde: string;
+
+  @ApiProperty()
+  @IsString()
+  hasta: string;
+}

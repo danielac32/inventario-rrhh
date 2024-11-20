@@ -34,33 +34,13 @@ CREATE TABLE "Producto" (
 );
 
 -- CreateTable
-CREATE TABLE "Trabajador" (
+CREATE TABLE "ProductoAsignado" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "nombre" TEXT NOT NULL,
-    "apellido" TEXT NOT NULL,
-    "cedula" TEXT NOT NULL,
-    "edad" INTEGER,
-    "direccion" TEXT,
-    "cargo" TEXT,
-    "oficina" TEXT,
-    "observacion" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
-
--- CreateTable
-CREATE TABLE "Familiar" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "nombre" TEXT NOT NULL,
-    "apellido" TEXT NOT NULL,
-    "edad" INTEGER,
-    "direccion" TEXT,
-    "relacion" TEXT NOT NULL,
-    "trabajadorId" INTEGER NOT NULL,
-    "observacion" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Familiar_trabajadorId_fkey" FOREIGN KEY ("trabajadorId") REFERENCES "Trabajador" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    "asignacionId" INTEGER NOT NULL,
+    "productId" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    CONSTRAINT "ProductoAsignado_asignacionId_fkey" FOREIGN KEY ("asignacionId") REFERENCES "Asignacion" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -68,11 +48,11 @@ CREATE TABLE "Asignacion" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "trabajadorId" INTEGER,
     "familiarId" INTEGER,
+    "otro" TEXT,
+    "tipo" TEXT NOT NULL,
     "observacion" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Asignacion_trabajadorId_fkey" FOREIGN KEY ("trabajadorId") REFERENCES "Trabajador" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Asignacion_familiarId_fkey" FOREIGN KEY ("familiarId") REFERENCES "Familiar" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateTable
@@ -81,13 +61,11 @@ CREATE TABLE "Modificacion" (
     "tipo" TEXT NOT NULL,
     "cantidad" INTEGER NOT NULL,
     "productoId" INTEGER NOT NULL,
-    "asignacionId" INTEGER,
     "entregado" TEXT,
     "observacion" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Modificacion_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Modificacion_asignacionId_fkey" FOREIGN KEY ("asignacionId") REFERENCES "Asignacion" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "Modificacion_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateIndex
@@ -95,6 +73,3 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Producto_codigo_key" ON "Producto"("codigo");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Trabajador_cedula_key" ON "Trabajador"("cedula");

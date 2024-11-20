@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../db-connections/prisma.service';
 
-import {categoriasMedicamentos,categoriasUniformes,categoriasEquiposOdontologicos,usuarios,trabajadores} from './data'
+import {productos,categoriasMedicamentos,categoriasUniformes,categoriasEquiposOdontologicos,usuarios,trabajadores} from './data'
 @Injectable()
 export class SeederService {
   constructor(
@@ -44,7 +44,7 @@ export class SeederService {
     }
   }
 
-
+/*
   async trabajador(){
   	for (const trabajador of trabajadores) {
       // Crear el trabajador
@@ -84,13 +84,28 @@ export class SeederService {
       }
     }
   }
+  */
 
+  async producto(){
+      for (const producto of productos) {
+           await this.prisma.producto.create({
+                data:{
+                      nombre: producto.nombre,
+                      descripcion: producto.descripcion,
+                      codigo: producto.codigo,
+                      stock: producto.stock,
+                      tipo: producto.tipo,
+                      categoriaId: producto.categoriaId, // Antipiréticos
+                }
+        });
+      }
+  }
   async  findAll() {
 
   	await this.categoria();
   	await this.user();
-  	await this.trabajador();
-
+  	//await this.trabajador();
+    await this.producto();
 
     return `seeder creada`;
   }

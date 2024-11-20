@@ -1,11 +1,36 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete,Query,Res} from '@nestjs/common';
 import { InvService } from './inv.service';
-import { CreateProductoDto,CreateCategoriaDto,CreateTrabajadorDto } from './dto/create-inv.dto';
+import { CreateProductoDto,CreateReport,CreateCategoriaDto,CreateTrabajadorDto,SubStockDto,AddStockDto,CreateAsignacionDto } from './dto/create-inv.dto';
 import { UpdateProductoDto,UpdateCategoriaDto,UpdateTrabajadorDto } from './dto/update-inv.dto';
+import { Response } from 'express';
 
 @Controller('inv')
 export class InvController {
   constructor(private readonly invService: InvService) {}
+  
+
+
+  @Get('pg')
+  pg() {
+    return this.invService.pgtest();
+  }
+  
+  @Get('getTrabajadores')
+  getTrabajadores() {
+    return this.invService.getTrabajadores();
+  }
+
+
+  @Get('getAsignacionDetalle')
+  getAsignacionDetalle(@Query('trabajadorId') trabajadorId: string,@Query('familiarId') familiarId: string) {
+    return this.invService.getAsignacionDetalle(+trabajadorId,+familiarId);
+  }
+ 
+
+  @Get('getFamiliares/:id')
+  getFamiliares(@Param('id') id: string) {
+    return this.invService.getFamiliares(+id);
+  }
 
   @Post('producto')
   create(@Body() createInvDto: CreateProductoDto) {
@@ -17,11 +42,27 @@ export class InvController {
     return this.invService.findAll();
   }
 
-  @Get('producto/:id')
-  findProductoTipo(@Param('id') id: string) {
-    return this.invService.findProductoTipo(+id);
+  @Get('productoTipo/:id')
+  async findProductoTipo(@Param('id') id: string) {
+    return await this.invService.findProductoTipo(+id);
   }
   
+  @Get('getHistoryProductId/:id')
+  getHistoryProductId(@Param('id') id: string) {
+    return this.invService.getHistoryProductId(+id);
+  }
+
+  
+  @Get('productoCategoria')
+  findProductoCategoria(@Query('id') id: string,@Query('idCategoria') idCategoria: string) {
+    return this.invService.ProductoCategoria(+id,+idCategoria);
+  }
+
+  @Get('productoAvailable')
+  productoAvailable(@Query('id') id: string,@Query('value') value: string) {
+    return this.invService.productoAvailable(+id,+value);
+  }
+
 
   @Get('producto/:id')
   findOne(@Param('id') id: string) {
@@ -31,6 +72,15 @@ export class InvController {
   @Patch('producto/:id')
   update(@Param('id') id: string, @Body() updateInvDto: UpdateProductoDto) {
     return this.invService.update(+id, updateInvDto);
+  }
+
+  @Patch('subStockProduct/:id')
+  subStockProduct(@Param('id') id: string, @Body() updateInvDto: SubStockDto) {
+    return this.invService.subStockProduct(+id, updateInvDto);
+  }
+  @Patch('addStockProduct/:id')
+  addStockProduct(@Param('id') id: string, @Body() updateInvDto: AddStockDto) {
+    return this.invService.addStockProduct(+id, updateInvDto);
   }
 
   @Delete('producto/:id')
@@ -71,7 +121,113 @@ export class InvController {
     return this.invService.removeCategoria(+id);
   }
   /**************************************************************************************************/
- @Post('create/Trabajador')
+  @Post('create/asignacion')
+  createAsignacion(@Body() createAsignacionDto: CreateAsignacionDto) {
+    return this.invService.createAsignacion(createAsignacionDto);
+  }
+  @Get('findAll/asignacion')
+  findAllAsignacion() {
+    return this.invService.findAllAsignacion();
+  }
+
+  @Get('findOne/asignacion/:id')
+  findOneAsignacion(@Param('id') id: string) {
+    return this.invService.findOneAsignacion(+id);
+  }
+  @Delete('remove/asignacion/:id')
+  removeAsignacion(@Param('id') id: string) {
+    return this.invService.deleteAsignacion(+id);
+  }
+
+
+  @Get('findAll/productoAsignacion/:id')
+  productoAsignacion(@Param('id') id: string) {
+    return this.invService.getProductoAsignacion(+id);
+  }
+
+  @Get('findAll/ProductoAsignado2')
+  productoAsignado2(@Query('idAsignacion') idAsignacion: string) {
+    return this.invService.obtenerProductosPorAsignacion2(+idAsignacion);
+  }
+
+   @Get('findAll/ProductoAsignado')
+  productoAsignado(@Query('idAsignacion') idAsignacion: string,@Query('idFamiliar') idFamiliar: string) {
+    return this.invService.obtenerProductosPorAsignacion(+idAsignacion,+idFamiliar);
+  }
+
+@Post('create/report')
+  async createReport(@Body() createReport: CreateReport, @Res() res: Response) {
+    try {
+      // Llamamos al servicio que genera el archivo Excel
+      const buffer = await this.invService.generateReportTrabajador(createReport);
+      
+      // Definir los encabezados para la descarga
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=${createReport.trabajadorId}.xlsx`);
+      
+      // Enviar el buffer como respuesta
+      res.send(buffer);
+    } catch (error) {
+      console.error('Error al generar el reporte:', error);
+      res.status(500).send('Error generando el reporte');
+    }
+  }
+ 
+ @Post('create/report/familiar')
+  async createReportFamiliar(@Body() createReport: CreateReport, @Res() res: Response) {
+    try {
+      // Llamamos al servicio que genera el archivo Excel
+      const buffer = await this.invService.generateReportFamiliar(createReport);
+      
+      // Definir los encabezados para la descarga
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=${createReport.familiarId}.xlsx`);
+      
+      // Enviar el buffer como respuesta
+      res.send(buffer);
+    } catch (error) {
+      console.error('Error al generar el reporte:', error);
+      res.status(500).send('Error generando el reporte');
+    }
+  }
+
+ @Post('create/report/otro')
+  async createReportOtro(@Body() createReport: CreateReport, @Res() res: Response) {
+    try {
+      // Llamamos al servicio que genera el archivo Excel
+      const buffer = await this.invService.generateReportOtro(createReport);
+      
+      // Definir los encabezados para la descarga
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=${createReport.desde}.xlsx`);
+      
+      // Enviar el buffer como respuesta
+      res.send(buffer);
+    } catch (error) {
+      console.error('Error al generar el reporte:', error);
+      res.status(500).send('Error generando el reporte');
+    }
+  }
+
+ @Post('create/report/total')
+  async createReportTotal(@Body() createReport: CreateReport, @Res() res: Response) {
+    try {
+      // Llamamos al servicio que genera el archivo Excel
+      const buffer = await this.invService.generateReportTotal(createReport);
+      
+      // Definir los encabezados para la descarga
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=total.xlsx`);
+      
+      // Enviar el buffer como respuesta
+      res.send(buffer);
+    } catch (error) {
+      console.error('Error al generar el reporte:', error);
+      res.status(500).send('Error generando el reporte');
+    }
+  }
+
+ /*@Post('create/Trabajador')
   createTrabajador(@Body() createTrabajadorDto: CreateTrabajadorDto) {
     return this.invService.createTrabajador(createTrabajadorDto);
   }
@@ -94,7 +250,7 @@ export class InvController {
   @Delete('remove/Trabajador/:id')
   removeTrabajador(@Param('id') id: string) {
     return this.invService.removeTrabajador(+id);
-  }
+  }*/
 /**************************************************************************************************/
 /*
   @Post('create/Familiar')

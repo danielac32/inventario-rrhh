@@ -53,57 +53,41 @@ model Producto {
   nombre       String?
   categoriaId    Int
   categoria      Categoria    @relation(fields: [categoriaId], references: [id])
-  tipo           String//TipoProducto // Define el tipo de producto al que pertenece
+  tipo           String       //TipoProducto // Define el tipo de producto al que pertenece
   modificaciones Modificacion[]   // Relación con modificaciones
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
 
-model Trabajador {
-  id         Int         @id @default(autoincrement())
-  nombre     String
-  apellido   String
-  cedula     String      @unique
-  edad          Int?
-  direccion    String?
-  cargo    String?
-  oficina    String?
-  familiares Familiar[]  // Relación con familiares
-  observacion    String?
-  // Relación con asignaciones
-  asignaciones Asignacion[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-}
 
-model Familiar {
-  id           Int        @id @default(autoincrement())
-  nombre       String
-  apellido     String
-  edad          Int?
-  direccion    String?
-  relacion     String      // Relación con el trabajador (ej. hijo, esposa, etc.)
-  trabajadorId Int
-  trabajador   Trabajador  @relation(fields: [trabajadorId], references: [id])
-  observacion    String?
-  // Relación con asignaciones
-  asignaciones Asignacion[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+
+//enum TipoAsignacion {
+//  trabajador
+//  familiar
+//  otro
+//}
+
+
+
+model ProductoAsignado {
+  id           Int         @id @default(autoincrement())
+  asignacionId Int
+  asignacion   Asignacion  @relation(fields: [asignacionId], references: [id])
+  productId    Int
+  name         String
+  quantity     Int
 }
 
 model Asignacion {
   id             Int         @id @default(autoincrement())
-  trabajadorId   Int?        // Relación con un trabajador (opcional)
-  trabajador     Trabajador? @relation(fields: [trabajadorId], references: [id])
-  familiarId     Int?        // Relación con un familiar (opcional)
-  familiar       Familiar?   @relation(fields: [familiarId], references: [id])
-  //userId         Int         // Usuario que realiza la asignación
-  //user           User        @relation(fields: [userId], references: [id])
-  modificaciones Modificacion[]  // Relación con las modificaciones (productos asignados)
+  trabajadorId   Int?
+  familiarId     Int?
+  otro           String?
+  tipo           String
   observacion    String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  productos      ProductoAsignado[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
 
 model Modificacion {
@@ -112,8 +96,6 @@ model Modificacion {
   cantidad     Int         // Cantidad modificada (agregada o restada)
   productoId   Int
   producto     Producto     @relation(fields: [productoId], references: [id])
-  asignacionId Int?          // Relación con una asignación
-  asignacion   Asignacion?   @relation(fields: [asignacionId], references: [id])
   entregado    String?
   observacion    String?
   createdAt      DateTime     @default(now())
