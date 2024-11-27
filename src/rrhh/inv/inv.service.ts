@@ -8,7 +8,13 @@ import {TipoProducto,TipoAsignacion} from '../../interface/inv-emun'
 import {PostgresService} from '../../db-connections/postgres.service'
 import * as ExcelJS from 'exceljs';
 import { Buffer } from 'buffer';
+import * as PDFDocument from 'pdfkit';
+import * as fs from 'fs';
+import * as path from 'path';
 
+
+ 
+const { Document, Packer, Table, TableRow, TableCell, Paragraph, TextRun } = require('docx');
 
 @Injectable()
 export class InvService {
@@ -70,6 +76,14 @@ async getAsignacionDetalle(trabajadorId: number, familiarId: number) {
     return {trabajador:result.rows}
   }
 
+
+  async getTrabajador(id:number) {
+    const query = 'select cedula, primer_nombre, primer_apellido from personal WHERE id_personal = $1'; // Cambia 'productos' por tu tabla real
+    const result = await this.postgresService.query(query,[id]);
+    return result.rows[0]
+  }
+
+ 
 async getFamiliares(id: number) {
   const query = `
     SELECT id_familiar, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, cedula_familiar,parentesco ,id_personal
@@ -91,6 +105,16 @@ async getFamiliar(id: number) {
   return result.rows;
 }
 
+async getFamiliar2(id: number) {
+  const query = `
+    SELECT primer_nombre, primer_apellido, cedula_familiar,parentesco 
+    FROM familiar
+    WHERE id_familiar = $1
+  `;
+  const result = await this.postgresService.query(query, [id]);
+  //return { familiar: result.rows };
+  return result.rows[0];
+}
  async obtenerProductosPorAsignacion(id_asignacion: number,idFamiliar:number) {
   try {
     // Busca todos los productos asignados relacionados con la asignación específica
@@ -209,7 +233,548 @@ async getFamiliar(id: number) {
     }
   }
 
+
+
+  getParent(p:string):string{
+      switch (p) {
+        case "M":
+          return "Madre";
+          case "P":
+          return "Padre";
+          case "H":
+          return "Hij(@)";
+          case "C":
+          return "Conyuge";
+        default:
+          // code...
+          return "Desconocido";
+      }
+  }
+
+
+
+
+generarTexto1(cedula: string, nombre: string, apellido: string): string {
+  const nombreMayusculas = (nombre || "NOMBRE").toUpperCase();
+  const apellidoMayusculas = (apellido || "APELLIDO").toUpperCase();
+
+  return `La Oficina Nacional del Tesoro, a través de la Dirección General de Recursos Humanos, y en aras de llevar mejoras a las condiciones de vida de los trabajadores, hace entrega de los medicamentos que se relacionan a continuación, al Ciudadan(@) ${nombreMayusculas} ${apellidoMayusculas}, titular de la Cédula de Identidad Nro. V-${cedula}, para tratamiento personal.`;
+}
+
+generarTexto2(cedula: string, nombre: string, apellido: string,parentesco:string,nombref: string, apellidof: string): string {
+  const nombreMayusculas = (nombre || "NOMBRE").toUpperCase();
+  const apellidoMayusculas = (apellido || "APELLIDO").toUpperCase();
+  const nombreFamiliar = (nombref || "NOMBRE").toUpperCase();
+  const apellidofamiliar = (apellidof || "APELLIDO").toUpperCase();
+  const parent=this.getParent(parentesco);
  
+  return `La Oficina Nacional del Tesoro, a través de la Dirección General de Recursos Humanos, y en aras de llevar mejoras a las condiciones de vida de los trabajadores, hace entrega de los medicamentos que se relacionan a continuación, al Ciudadan(@) ${nombreMayusculas} ${apellidoMayusculas}, titular de la Cédula de Identidad Nro. V-${cedula}, para tratamiento de su ${parent} ${nombreFamiliar} ${apellidofamiliar}.`;
+}
+
+generarTexto3(otro: string, observacion: string): string {
+  return `La Oficina Nacional del Tesoro, a través de la Dirección General de Recursos Humanos, y en aras de llevar mejoras a las condiciones de vida de los trabajadores, hace entrega de los siguientes productos que se relacionan a continuación, ${otro} (${observacion}).`;
+}
+
+
+/********************************************************************************************************************/
+ async createAsignacionPdfOtro(otro: string, observacion: string,productos:{name:string,quantity:number}[]){
+     
+        const texto=this.generarTexto3(otro,observacion);
+        //console.log(trabajador.cedula,trabajador.primer_nombre,trabajador.primer_apellido)
+       // console.log(familiar)
+         const doc = new PDFDocument();
+
+
+      let globalY=130;
+     
+      const pageWidth = doc.page.width; // Ancho de la página
+       const pageHeight = doc.page.height;
+
+    // Crear un flujo de salida de archivo (buffer)
+    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const chunks: any[] = [];
+      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', (err) => reject(err));
+
+      // Añadir imagen (asegurándote que esté en la carpeta de los recursos estáticos)
+      const imgPath = path.join(__dirname, '..', '..', '..','public', 'acta.png'); // Ruta de la imagen en assets
+      console.log(imgPath)
+      if (!fs.existsSync(imgPath)) {
+        console.error('Imagen no encontrada:', imgPath);
+        reject(new Error('Imagen no encontrada'));
+        return;
+      }
+
+
+
+      console.log(imgPath)
+      doc.image(imgPath, 10, 10, { width: 590 }); // Ajusta el tamaño y la posición según sea necesario
+
+
+      const text = 'ACTA DE ENTREGA'; // Texto a centrar
+      const textWidth = doc.widthOfString(text); // Ancho del texto
+
+      const xPosition = (pageWidth - textWidth+160) / 2;
+
+
+
+      // Agregar texto al PDF
+      doc.fontSize(18).text(text, 240,globalY);
+      
+
+      globalY += 50;
+      const text2 = "";//'MEDICAMENTOS';
+      doc.fontSize(16).text('ASIGNACIÓN: ', 50,globalY+30);
+      const xPosition2 = (pageWidth - textWidth)/3;
+      doc.fontSize(14).text(text2, xPosition2,globalY+30);
+
+      globalY += 70;
+      //const text3 = `La Oficina Nacional del Tesoro, a través de la Dirección General de Recursos Humanos, y en aras de llevar mejoras a las condiciones de vida de los trabajadores, hace entrega de los medicamentos que se relacionan a continuación, a la Ciudadana SUBGEYDY FIGUEROA, titular de la Cédula de Identidad Nro. V-16.091.411, para tratamiento de su madre DILIA ARVELO.`;
+      doc.fontSize(12).text(texto, 50,globalY,{ width: 500, align: 'left' });
+      
+      globalY += 90;
+
+
+      // Definir las posiciones y tamaños de las celdas
+      let yPosition = globalY;
+
+      let str="";
+      // Dibuja las filas de productos
+      productos.forEach((producto) => {
+
+      if(producto.name !== undefined && producto.quantity !== undefined){
+         str += producto.name +" - " + producto.quantity +  '\n';
+        // console.log(str)
+      }
+       
+      });
+
+
+    doc.text(str, 50, yPosition, {
+      align: 'left', continued: true, // Centrar texto horizontalmente
+      width:  100 // Limitar ancho del texto dentro de márgenes
+    });
+
+
+
+      globalY += 170;
+
+      doc.text('AUTORIZADO POR:', 50, globalY + 10);
+      globalY += 60;
+      doc.text('_______________________________', 50, globalY);
+      globalY += 2;
+      doc.text('ARELIS DIAZ', 50, globalY + 10);
+      doc.text('Directora General de Recursos Humanos', 50, globalY + 20);
+      doc.text('Oficina Nacional del Tesoro', 50, globalY + 30);
+
+      const footerText = 'Edificio Torre Norte del MPPEFCE, Carmelitas a Altagracia, PB, Parroquia Altagracia, Distrito Capital. Teléfono: 0212-8024647/4655/4633 RIF: G-20010531-3';
+      const footerFontSize = 7;
+      doc.fontSize(footerFontSize);
+
+      //const footerTextHeight = doc.heightOfString(footerText, { width: pageWidth - 100 }); // Ajustar ancho con márgenes
+      //const footerMargin = 7; // Margen inferior para evitar desbordes
+      //const footerY = pageHeight - footerTextHeight - footerMargin; // Posición en Y
+
+      // Posición vertical del pie de página
+      globalY = pageHeight - 85; // Ajusta este valor según lo necesites
+
+      // Dibujar línea justo encima del texto
+      const lineY = globalY; // Línea 5 unidades encima del texto
+      doc.moveTo(50, lineY) // Inicio de la línea (margen izquierdo)
+         .lineTo(pageWidth - 50, lineY) // Fin de la línea (margen derecho)
+         .stroke(); // Renderizar la línea
+
+
+      // Dibujar el texto centrado
+     doc.text(footerText, 50, lineY+3, {
+      align: 'center', // Centrar texto horizontalmente
+     // width: pageWidth - 100 // Limitar ancho del texto dentro de márgenes
+    });
+      // Finalizar el PDF
+      doc.end();
+    });
+
+    return pdfBuffer;
+  }
+  async createAsignacionPdfFamiliar(trabajadorId:number,familiarId:number,parentesco:string,productos:{name:string,quantity:number}[]){
+        const trabajador=await this.getTrabajador(trabajadorId)
+        const familiar = await this.getFamiliar2(familiarId)
+        const texto=this.generarTexto2(trabajador.cedula,trabajador.primer_nombre,trabajador.primer_apellido,parentesco,familiar.primer_nombre,familiar.primer_apellido);
+        //console.log(trabajador.cedula,trabajador.primer_nombre,trabajador.primer_apellido)
+       // console.log(familiar)
+         const doc = new PDFDocument();
+
+
+      let globalY=130;
+     
+      const pageWidth = doc.page.width; // Ancho de la página
+       const pageHeight = doc.page.height;
+
+    // Crear un flujo de salida de archivo (buffer)
+    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const chunks: any[] = [];
+      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', (err) => reject(err));
+
+      // Añadir imagen (asegurándote que esté en la carpeta de los recursos estáticos)
+      const imgPath = path.join(__dirname, '..', '..', '..','public', 'acta.png'); // Ruta de la imagen en assets
+      console.log(imgPath)
+      if (!fs.existsSync(imgPath)) {
+        console.error('Imagen no encontrada:', imgPath);
+        reject(new Error('Imagen no encontrada'));
+        return;
+      }
+
+
+
+      console.log(imgPath)
+      doc.image(imgPath, 10, 10, { width: 590 }); // Ajusta el tamaño y la posición según sea necesario
+
+
+      const text = 'ACTA DE ENTREGA'; // Texto a centrar
+      const textWidth = doc.widthOfString(text); // Ancho del texto
+
+      const xPosition = (pageWidth - textWidth) / 2;
+
+
+
+      // Agregar texto al PDF
+      doc.fontSize(18).text(text, xPosition,globalY);
+      
+
+      globalY += 50;
+      const text2 = "";//'MEDICAMENTOS';
+      doc.fontSize(16).text('ASIGNACIÓN: ', 50,globalY+30);
+      const xPosition2 = (pageWidth - textWidth)/3;
+      doc.fontSize(14).text(text2, xPosition2,globalY+30);
+
+      globalY += 70;
+      //const text3 = `La Oficina Nacional del Tesoro, a través de la Dirección General de Recursos Humanos, y en aras de llevar mejoras a las condiciones de vida de los trabajadores, hace entrega de los medicamentos que se relacionan a continuación, a la Ciudadana SUBGEYDY FIGUEROA, titular de la Cédula de Identidad Nro. V-16.091.411, para tratamiento de su madre DILIA ARVELO.`;
+      doc.fontSize(12).text(texto, 50,globalY,{ width: 500, align: 'left' });
+      
+      globalY += 90;
+
+
+      // Definir las posiciones y tamaños de las celdas
+      let yPosition = globalY;
+
+      let str="";
+      // Dibuja las filas de productos
+      productos.forEach((producto) => {
+
+      if(producto.name !== undefined && producto.quantity !== undefined){
+         str += producto.name +" - " + producto.quantity +  '\n';
+        // console.log(str)
+      }
+       
+      });
+
+
+    doc.text(str, 50, yPosition, {
+      align: 'left', continued: true, // Centrar texto horizontalmente
+      width:  100 // Limitar ancho del texto dentro de márgenes
+    });
+
+
+
+      globalY += 170;
+
+      doc.text('AUTORIZADO POR:', 50, globalY + 10);
+      globalY += 60;
+      doc.text('_______________________________', 50, globalY);
+      globalY += 2;
+      doc.text('ARELIS DIAZ', 50, globalY + 10);
+      doc.text('Directora General de Recursos Humanos', 50, globalY + 20);
+      doc.text('Oficina Nacional del Tesoro', 50, globalY + 30);
+
+      const footerText = 'Edificio Torre Norte del MPPEFCE, Carmelitas a Altagracia, PB, Parroquia Altagracia, Distrito Capital. Teléfono: 0212-8024647/4655/4633 RIF: G-20010531-3';
+      const footerFontSize = 7;
+      doc.fontSize(footerFontSize);
+
+      //const footerTextHeight = doc.heightOfString(footerText, { width: pageWidth - 100 }); // Ajustar ancho con márgenes
+      //const footerMargin = 7; // Margen inferior para evitar desbordes
+      //const footerY = pageHeight - footerTextHeight - footerMargin; // Posición en Y
+
+      // Posición vertical del pie de página
+      globalY = pageHeight - 85; // Ajusta este valor según lo necesites
+
+      // Dibujar línea justo encima del texto
+      const lineY = globalY; // Línea 5 unidades encima del texto
+      doc.moveTo(50, lineY) // Inicio de la línea (margen izquierdo)
+         .lineTo(pageWidth - 50, lineY) // Fin de la línea (margen derecho)
+         .stroke(); // Renderizar la línea
+
+
+      // Dibujar el texto centrado
+     doc.text(footerText, 50, lineY+3, {
+      align: 'center', // Centrar texto horizontalmente
+     // width: pageWidth - 100 // Limitar ancho del texto dentro de márgenes
+    });
+      // Finalizar el PDF
+      doc.end();
+    });
+
+    return pdfBuffer;
+  }
+
+
+
+  async createAsignacionPdfTrabajador(trabajadorId:number,productos:{name:string,quantity:number}[]){
+        const trabajador=await this.getTrabajador(trabajadorId)
+        const texto=this.generarTexto1(trabajador.cedula,trabajador.primer_nombre,trabajador.primer_apellido);
+        //console.log(trabajador.cedula,trabajador.primer_nombre,trabajador.primer_apellido)
+        //console.log(texto,productos)
+         const doc = new PDFDocument();
+
+
+      let globalY=130;
+     
+      const pageWidth = doc.page.width; // Ancho de la página
+       const pageHeight = doc.page.height;
+
+    // Crear un flujo de salida de archivo (buffer)
+    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const chunks: any[] = [];
+      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', (err) => reject(err));
+
+      // Añadir imagen (asegurándote que esté en la carpeta de los recursos estáticos)
+      const imgPath = path.join(__dirname, '..', '..', '..','public', 'acta.png'); // Ruta de la imagen en assets
+      console.log(imgPath)
+      if (!fs.existsSync(imgPath)) {
+        console.error('Imagen no encontrada:', imgPath);
+        reject(new Error('Imagen no encontrada'));
+        return;
+      }
+
+
+
+      console.log(imgPath)
+      doc.image(imgPath, 10, 10, { width: 590 }); // Ajusta el tamaño y la posición según sea necesario
+
+
+      const text = 'ACTA DE ENTREGA'; // Texto a centrar
+      const textWidth = doc.widthOfString(text); // Ancho del texto
+
+      const xPosition = (pageWidth - textWidth) / 2;
+
+
+
+      // Agregar texto al PDF
+      doc.fontSize(18).text(text, xPosition,globalY);
+      
+
+      globalY += 50;
+      const text2 = 'MEDICAMENTOS';
+      doc.fontSize(16).text('ASIGNACIÓN: ', 50,globalY+30);
+      const xPosition2 = (pageWidth - textWidth)/3;
+      doc.fontSize(14).text(text2, xPosition2,globalY+30);
+
+      globalY += 70;
+      //const text3 = `La Oficina Nacional del Tesoro, a través de la Dirección General de Recursos Humanos, y en aras de llevar mejoras a las condiciones de vida de los trabajadores, hace entrega de los medicamentos que se relacionan a continuación, a la Ciudadana SUBGEYDY FIGUEROA, titular de la Cédula de Identidad Nro. V-16.091.411, para tratamiento de su madre DILIA ARVELO.`;
+      doc.fontSize(12).text(texto, 50,globalY,{ width: 500, align: 'left' });
+      
+      globalY += 90;
+
+
+      // Definir las posiciones y tamaños de las celdas
+      let yPosition = globalY;
+
+      let str="";
+      // Dibuja las filas de productos
+      productos.forEach((producto) => {
+
+      if(producto.name !== undefined && producto.quantity !== undefined){
+         str += producto.name +" - " + producto.quantity +  '\n';
+        // console.log(str)
+      }
+       
+      });
+
+
+    doc.text(str, 50, yPosition, {
+      align: 'left', continued: true, // Centrar texto horizontalmente
+      width:  100 // Limitar ancho del texto dentro de márgenes
+    });
+
+
+
+      globalY += 170;
+
+      doc.text('AUTORIZADO POR:', 50, globalY + 10);
+      globalY += 60;
+      doc.text('_______________________________', 50, globalY);
+      globalY += 2;
+      doc.text('ARELIS DIAZ', 50, globalY + 10);
+      doc.text('Directora General de Recursos Humanos', 50, globalY + 20);
+      doc.text('Oficina Nacional del Tesoro', 50, globalY + 30);
+
+      const footerText = 'Edificio Torre Norte del MPPEFCE, Carmelitas a Altagracia, PB, Parroquia Altagracia, Distrito Capital. Teléfono: 0212-8024647/4655/4633 RIF: G-20010531-3';
+      const footerFontSize = 7;
+      doc.fontSize(footerFontSize);
+
+      //const footerTextHeight = doc.heightOfString(footerText, { width: pageWidth - 100 }); // Ajustar ancho con márgenes
+      //const footerMargin = 7; // Margen inferior para evitar desbordes
+      //const footerY = pageHeight - footerTextHeight - footerMargin; // Posición en Y
+
+      // Posición vertical del pie de página
+      globalY = pageHeight - 85; // Ajusta este valor según lo necesites
+
+      // Dibujar línea justo encima del texto
+      const lineY = globalY; // Línea 5 unidades encima del texto
+      doc.moveTo(50, lineY) // Inicio de la línea (margen izquierdo)
+         .lineTo(pageWidth - 50, lineY) // Fin de la línea (margen derecho)
+         .stroke(); // Renderizar la línea
+
+
+      // Dibujar el texto centrado
+     doc.text(footerText, 50, lineY+3, {
+      align: 'center', // Centrar texto horizontalmente
+     // width: pageWidth - 100 // Limitar ancho del texto dentro de márgenes
+    });
+      // Finalizar el PDF
+      doc.end();
+    });
+
+    return pdfBuffer;
+  }
+
+
+  async createAsignacionPdf(){
+      const doc = new PDFDocument();
+
+
+      let globalY=130;
+     
+      const pageWidth = doc.page.width; // Ancho de la página
+       const pageHeight = doc.page.height;
+
+    // Crear un flujo de salida de archivo (buffer)
+    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const chunks: any[] = [];
+      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', (err) => reject(err));
+
+      // Añadir imagen (asegurándote que esté en la carpeta de los recursos estáticos)
+      const imgPath = path.join(__dirname, '..', '..', '..','public', 'acta.png'); // Ruta de la imagen en assets
+      console.log(imgPath)
+      if (!fs.existsSync(imgPath)) {
+        console.error('Imagen no encontrada:', imgPath);
+        reject(new Error('Imagen no encontrada'));
+        return;
+      }
+
+
+
+      console.log(imgPath)
+      doc.image(imgPath, 10, 10, { width: 590 }); // Ajusta el tamaño y la posición según sea necesario
+
+
+      const text = 'ACTA DE ENTREGA'; // Texto a centrar
+      const textWidth = doc.widthOfString(text); // Ancho del texto
+
+      const xPosition = (pageWidth - textWidth) / 2;
+
+
+
+      // Agregar texto al PDF
+      doc.fontSize(18).text(text, xPosition,globalY);
+      
+
+      globalY += 50;
+      const text2 = 'MEDICAMENTOS';
+      doc.fontSize(16).text('ASIGNACIÓN: ', 50,globalY+30);
+      const xPosition2 = (pageWidth - textWidth)/3;
+      doc.fontSize(14).text(text2, xPosition2,globalY+30);
+
+      globalY += 70;
+      const text3 = `La Oficina Nacional del Tesoro, a través de la Dirección General de Recursos Humanos, y en aras de llevar mejoras a las condiciones de vida de los trabajadores, hace entrega de los medicamentos que se relacionan a continuación, a la Ciudadana SUBGEYDY FIGUEROA, titular de la Cédula de Identidad Nro. V-16.091.411, para tratamiento de su madre DILIA ARVELO.`;
+      doc.fontSize(12).text(text3, 50,globalY,{ width: 500, align: 'left', continued: true });
+      
+      globalY += 90;
+
+      const productos = [
+        { nombre: 'VALSARTAN', cantidad: '1 CAJA' },
+        { nombre: 'AMLODIPINA', cantidad: '1 CAJA' },
+        { nombre: 'ATORVASTATINA', cantidad: '1 CAJA' },
+        { nombre: 'OMEGA 3', cantidad: '1 FRASCO' },
+      ];
+
+      // Definir las posiciones y tamaños de las celdas
+      let yPosition = globalY;
+      const cellPadding = 5;  // Espaciado dentro de las celdas
+      const columnWidths = [300, 100];  // Ancho de las columnas (nombre y cantidad)
+      const rowHeight = 20;  // Altura de cada fila
+
+      // Dibuja los encabezados de la tabla (si deseas)
+      doc.rect(50, yPosition, columnWidths[0], rowHeight).stroke();  // Celda para nombre
+      doc.rect(50 + columnWidths[0], yPosition, columnWidths[1], rowHeight).stroke();  // Celda para cantidad
+      doc.text('Producto', 50 + cellPadding, yPosition + cellPadding);
+      doc.text('Cantidad', 50 + columnWidths[0] + cellPadding, yPosition + cellPadding);
+
+      yPosition += rowHeight;  // Mover a la siguiente fila
+
+      // Dibuja las filas de productos
+      productos.forEach(producto => {
+        // Dibuja las celdas de la tabla
+        doc.rect(50, yPosition, columnWidths[0], rowHeight).stroke();  // Celda para nombre
+        doc.rect(50 + columnWidths[0], yPosition, columnWidths[1], rowHeight).stroke();  // Celda para cantidad
+
+        // Escribe el texto dentro de las celdas
+        doc.text(producto.nombre, 50 + cellPadding, yPosition + cellPadding);
+        doc.text(producto.cantidad, 50 + columnWidths[0] + cellPadding, yPosition + cellPadding);
+
+        yPosition += rowHeight;  // Mover a la siguiente fila
+      });
+
+      globalY += 180;
+
+      doc.text('AUTORIZADO POR:', 50, globalY + 10);
+      globalY += 50;
+      doc.text('_______________________________', 50, globalY);
+      globalY += 2;
+      doc.text('ARELIS DIAZ', 50, globalY + 10);
+      doc.text('Directora General de Recursos Humanos', 50, globalY + 20);
+      doc.text('Oficina Nacional del Tesoro', 50, globalY + 30);
+
+      const footerText = 'Edificio Torre Norte del MPPEFCE, Carmelitas a Altagracia, PB, Parroquia Altagracia, Distrito Capital. Teléfono: 0212-8024647/4655/4633 RIF: G-20010531-3';
+      const footerFontSize = 7;
+      doc.fontSize(footerFontSize);
+
+      const footerTextHeight = doc.heightOfString(footerText, { width: pageWidth - 100 }); // Ajustar ancho con márgenes
+      const footerMargin = 7; // Margen inferior para evitar desbordes
+      const footerY = pageHeight - footerTextHeight - footerMargin; // Posición en Y
+
+      // Posición vertical del pie de página
+      globalY = pageHeight - 80; // Ajusta este valor según lo necesites
+
+      // Dibujar línea justo encima del texto
+      const lineY = globalY - 5; // Línea 5 unidades encima del texto
+      doc.moveTo(50, lineY) // Inicio de la línea (margen izquierdo)
+         .lineTo(pageWidth - 50, lineY) // Fin de la línea (margen derecho)
+         .stroke(); // Renderizar la línea
+
+
+      // Dibujar el texto centrado
+     doc.text(footerText, 50, pageWidth+3, {
+      align: 'center', // Centrar texto horizontalmente
+      width: pageWidth - 100 // Limitar ancho del texto dentro de márgenes
+    });
+      // Finalizar el PDF
+      doc.end();
+    });
+
+    return pdfBuffer;
+  }
+
+
+  
+
+
   async createAsignacion(createAsignacionDto: CreateAsignacionDto){
     try{
         let asignacion;
@@ -289,7 +854,6 @@ async getFamiliar(id: number) {
 
             }
         }
-
         return {
                   asignacion
                }

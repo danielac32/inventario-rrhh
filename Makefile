@@ -24,7 +24,7 @@ install:
 run:
 	#sudo npm run start:dev
 	nest build
-	node dist/main.js --host 0.0.0.0 &
+	node dist/main.js --host 0.0.0.0
 
 run2:
 	#sudo npm run start:dev

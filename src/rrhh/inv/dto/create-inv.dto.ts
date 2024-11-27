@@ -187,6 +187,12 @@ export class CreateAsignacionDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
+  parentesco: string;
+
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
   otro: string;
 
   @ApiProperty()
@@ -194,7 +200,7 @@ export class CreateAsignacionDto {
   @MinLength(1)
   @IsString()
   observacion: string;
-
+  
   @ApiProperty()
   @MinLength(1)
   @IsString()

@@ -4,6 +4,8 @@ import { AppModule } from './app.module';
 import { DocumentBuilder } from '@nestjs/swagger';
 import { SwaggerModule } from '@nestjs/swagger/dist';
 import * as cors from 'cors';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 async function bootstrap() {
 
@@ -16,10 +18,12 @@ async function bootstrap() {
   };
 
   const app = await NestFactory.create(AppModule);
+
+  
   app.use(cors(corsOptions));
   const logger = new Logger('Bootstrap')
   //app.setGlobalPrefix('api');
-
+ 
   app.useGlobalPipes( 
     new ValidationPipe({
       whitelist: true,

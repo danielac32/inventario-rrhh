@@ -3,6 +3,8 @@ import { InvService } from './inv.service';
 import { CreateProductoDto,CreateReport,CreateCategoriaDto,CreateTrabajadorDto,SubStockDto,AddStockDto,CreateAsignacionDto } from './dto/create-inv.dto';
 import { UpdateProductoDto,UpdateCategoriaDto,UpdateTrabajadorDto } from './dto/update-inv.dto';
 import { Response } from 'express';
+import {TipoProducto,TipoAsignacion} from '../../interface/inv-emun'
+
 
 @Controller('inv')
 export class InvController {
@@ -125,6 +127,48 @@ export class InvController {
   createAsignacion(@Body() createAsignacionDto: CreateAsignacionDto) {
     return this.invService.createAsignacion(createAsignacionDto);
   }
+  @Post('create/asignacion/pdf')
+  async createAsignacionPfd( @Body() createAsignacionDto: CreateAsignacionDto,@Res() res: Response) {
+
+    try {
+
+      let buffer;
+      switch (createAsignacionDto.tipo) {
+           case TipoAsignacion.FAMILIAR:
+              {
+                   const {trabajadorId,familiarId,parentesco,productos} = createAsignacionDto;
+                   buffer = await this.invService.createAsignacionPdfFamiliar(trabajadorId,familiarId,parentesco,productos);
+              }
+            break;
+
+          case TipoAsignacion.TRABAJADOR:
+                {
+                   const {trabajadorId,productos} = createAsignacionDto;
+                   buffer = await this.invService.createAsignacionPdfTrabajador(trabajadorId,productos);
+                }
+            break;
+
+          case TipoAsignacion.OTRO:
+                {
+                 const {otro,observacion,productos} = createAsignacionDto;
+                   buffer = await this.invService.createAsignacionPdfOtro(otro,observacion,productos);
+                }
+            break;
+
+      }
+      
+      // Definir los encabezados para la descarga
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=acta.pdf`);
+      
+      // Enviar el buffer como respuesta
+      res.send(buffer);
+    } catch (error) {
+      console.error('Error al generar el reporte:', error);
+      res.status(500).send('Error generando el reporte');
+    }
+  }
+
   @Get('findAll/asignacion')
   findAllAsignacion() {
     return this.invService.findAllAsignacion();
