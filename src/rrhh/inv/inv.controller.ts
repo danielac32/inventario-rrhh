@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete,Query,Res} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete,Query,Res,UseGuards} from '@nestjs/common';
 import { InvService } from './inv.service';
 import { CreateProductoDto,CreateReport,CreateCategoriaDto,CreateTrabajadorDto,SubStockDto,AddStockDto,CreateAsignacionDto } from './dto/create-inv.dto';
 import { UpdateProductoDto,UpdateCategoriaDto,UpdateTrabajadorDto } from './dto/update-inv.dto';
 import { Response } from 'express';
 import {TipoProducto,TipoAsignacion} from '../../interface/inv-emun'
 
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard'
+import { ValidRoles } from '../../auth/interface/valid-roles';
+import { RolesGuard } from '../../auth/roles.guard'
 
 @Controller('inv')
 export class InvController {
@@ -17,74 +20,83 @@ export class InvController {
     return this.invService.pgtest();
   }
   
+    @UseGuards(JwtAuthGuard)
   @Get('getTrabajadores')
   getTrabajadores() {
     return this.invService.getTrabajadores();
   }
 
-
+@UseGuards(JwtAuthGuard)
   @Get('getAsignacionDetalle')
   getAsignacionDetalle(@Query('trabajadorId') trabajadorId: string,@Query('familiarId') familiarId: string) {
     return this.invService.getAsignacionDetalle(+trabajadorId,+familiarId);
   }
  
-
+@UseGuards(JwtAuthGuard)
   @Get('getFamiliares/:id')
   getFamiliares(@Param('id') id: string) {
     return this.invService.getFamiliares(+id);
   }
-
+@UseGuards(JwtAuthGuard)
   @Post('producto')
   create(@Body() createInvDto: CreateProductoDto) {
     return this.invService.create(createInvDto);
   }
-
+@UseGuards(JwtAuthGuard)
   @Get('producto/')
   findAll() {
     return this.invService.findAll();
   }
-
+@UseGuards(JwtAuthGuard)
   @Get('productoTipo/:id')
   async findProductoTipo(@Param('id') id: string) {
     return await this.invService.findProductoTipo(+id);
   }
-  
+  @UseGuards(JwtAuthGuard)
   @Get('getHistoryProductId/:id')
   getHistoryProductId(@Param('id') id: string) {
     return this.invService.getHistoryProductId(+id);
   }
 
-  
+  @UseGuards(JwtAuthGuard)
   @Get('productoCategoria')
   findProductoCategoria(@Query('id') id: string,@Query('idCategoria') idCategoria: string) {
     return this.invService.ProductoCategoria(+id,+idCategoria);
   }
-
+@UseGuards(JwtAuthGuard)
   @Get('productoAvailable')
   productoAvailable(@Query('id') id: string,@Query('value') value: string) {
     return this.invService.productoAvailable(+id,+value);
   }
 
-
+@UseGuards(JwtAuthGuard)
   @Get('producto/:id')
   findOne(@Param('id') id: string) {
     return this.invService.findOne(+id);
   }
 
+
+@UseGuards(JwtAuthGuard)
   @Patch('producto/:id')
   update(@Param('id') id: string, @Body() updateInvDto: UpdateProductoDto) {
     return this.invService.update(+id, updateInvDto);
   }
 
+
+@UseGuards(JwtAuthGuard)
   @Patch('subStockProduct/:id')
   subStockProduct(@Param('id') id: string, @Body() updateInvDto: SubStockDto) {
     return this.invService.subStockProduct(+id, updateInvDto);
   }
+
+  @UseGuards(JwtAuthGuard)
   @Patch('addStockProduct/:id')
   addStockProduct(@Param('id') id: string, @Body() updateInvDto: AddStockDto) {
     return this.invService.addStockProduct(+id, updateInvDto);
   }
 
+
+@UseGuards(JwtAuthGuard)
   @Delete('producto/:id')
   remove(@Param('id') id: string) {
     return this.invService.remove(+id);
@@ -92,41 +104,53 @@ export class InvController {
 
 
   /**************************************************************************************************/
+  @UseGuards(JwtAuthGuard)
   @Post('create/Categoria')
   createCategoria(@Body() createCategoriaDto: CreateCategoriaDto) {
     return this.invService.createCategoria(createCategoriaDto);
   }
 
+
+@UseGuards(JwtAuthGuard)
   @Get('findAll/Categoria')
   findAllCategoria() {
     return this.invService.findAllCategoria();
   }
 
+
+@UseGuards(JwtAuthGuard)
   @Get('findOne/Categoria/:id')
   findOneCategoria(@Param('id') id: string) {
     return this.invService.findOneCategoria(+id);
   }
   
+@UseGuards(JwtAuthGuard)
   @Get('find/CategoriaTipo/:id')
   findCategoriaTipo(@Param('id') id: string) {
     return this.invService.findCategoriaTipo(+id);
   }
 
-
+@UseGuards(JwtAuthGuard)
   @Patch('update/Categoria/:id')
   updateCategoria(@Param('id') id: string, @Body() updateCategoriaDto: UpdateCategoriaDto) {
     return this.invService.updateCategoria(+id, updateCategoriaDto);
   }
 
+
+@UseGuards(JwtAuthGuard)
   @Delete('remove/Categoria/:id')
   removeCategoria(@Param('id') id: string) {
     return this.invService.removeCategoria(+id);
   }
   /**************************************************************************************************/
+  
+@UseGuards(JwtAuthGuard)
   @Post('create/asignacion')
   createAsignacion(@Body() createAsignacionDto: CreateAsignacionDto) {
     return this.invService.createAsignacion(createAsignacionDto);
   }
+
+ @UseGuards(JwtAuthGuard)
   @Post('create/asignacion/pdf')
   async createAsignacionPfd( @Body() createAsignacionDto: CreateAsignacionDto,@Res() res: Response) {
 
@@ -169,36 +193,47 @@ export class InvController {
     }
   }
 
+
+@UseGuards(JwtAuthGuard)
   @Get('findAll/asignacion')
   findAllAsignacion() {
     return this.invService.findAllAsignacion();
   }
 
+
+@UseGuards(JwtAuthGuard)
   @Get('findOne/asignacion/:id')
   findOneAsignacion(@Param('id') id: string) {
     return this.invService.findOneAsignacion(+id);
   }
+
+  @UseGuards(JwtAuthGuard)
   @Delete('remove/asignacion/:id')
   removeAsignacion(@Param('id') id: string) {
     return this.invService.deleteAsignacion(+id);
   }
 
-
+@UseGuards(JwtAuthGuard)
   @Get('findAll/productoAsignacion/:id')
   productoAsignacion(@Param('id') id: string) {
     return this.invService.getProductoAsignacion(+id);
   }
 
+
+@UseGuards(JwtAuthGuard)
   @Get('findAll/ProductoAsignado2')
   productoAsignado2(@Query('idAsignacion') idAsignacion: string) {
     return this.invService.obtenerProductosPorAsignacion2(+idAsignacion);
   }
 
+@UseGuards(JwtAuthGuard)
    @Get('findAll/ProductoAsignado')
   productoAsignado(@Query('idAsignacion') idAsignacion: string,@Query('idFamiliar') idFamiliar: string) {
     return this.invService.obtenerProductosPorAsignacion(+idAsignacion,+idFamiliar);
   }
 
+
+@UseGuards(JwtAuthGuard)
 @Post('create/report')
   async createReport(@Body() createReport: CreateReport, @Res() res: Response) {
     try {
@@ -217,6 +252,8 @@ export class InvController {
     }
   }
  
+
+ @UseGuards(JwtAuthGuard)
  @Post('create/report/familiar')
   async createReportFamiliar(@Body() createReport: CreateReport, @Res() res: Response) {
     try {
@@ -235,6 +272,8 @@ export class InvController {
     }
   }
 
+
+@UseGuards(JwtAuthGuard)
  @Post('create/report/otro')
   async createReportOtro(@Body() createReport: CreateReport, @Res() res: Response) {
     try {
@@ -253,6 +292,8 @@ export class InvController {
     }
   }
 
+
+@UseGuards(JwtAuthGuard)
  @Post('create/report/total')
   async createReportTotal(@Body() createReport: CreateReport, @Res() res: Response) {
     try {

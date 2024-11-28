@@ -1143,6 +1143,9 @@ async subStockProduct(id: number, updateInvDto: SubStockDto) {
   async  remove(id: number) {
     const producto= await this.getProducto(id);
     if(!producto)throw new NotFoundException(`Entity with ID ${id} not found`);
+    await this.prisma.modificacion.deleteMany({
+    where: { productoId: id },
+  });
     const deletedproducto = await this.prisma.producto.delete({
       where: {
         id: producto.id

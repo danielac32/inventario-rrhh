@@ -105,7 +105,7 @@ export class SeederService {
   	await this.categoria();
   	await this.user();
   	//await this.trabajador();
-    await this.producto();
+   // await this.producto();
 
     return `seeder creada`;
   }
